@@ -19,18 +19,13 @@ func init() {
 
 type User struct {
 	gorm.Model
-	UID	uuid.UUID
-	Username string
+	UID	uuid.UUID	`gorm:"unique;not null"`
+	Username string	`gorm:"unique;not null"`
 	Log	[]Exercise
 }
 
-func genUUIDv4() (uid uuid.UUID, err error) {
-	uid, err = uuid.NewV4()
-	return uid, err
-}
-
 func AddUser(user *User) (err error) {
-	uid, err := genUUIDv4()
+	uid := uuid.NewV4()
 	user.UID = uid
 	if err != nil {
 		return err
