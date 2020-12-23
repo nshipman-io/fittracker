@@ -12,7 +12,7 @@ func main() {
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/",fs))
 	router.HandleFunc("/", Home)
 	router.HandleFunc("/api/exercise/new-user", NewUser)
-	//router.HandleFunc("/api/exercise/users", GetUsers)
+	router.HandleFunc("/api/exercise/users", GetUsers)
 	//router.HandleFunc("/api/exercise/add", AddExercise)
 	//router.HandleFunc("/api/exercise/log", Log)
 
