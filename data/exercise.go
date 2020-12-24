@@ -2,25 +2,40 @@ package data
 
 import (
 	"github.com/jinzhu/gorm"
-	uuid "github.com/satori/go.uuid"
+	"log"
+	"time"
 )
 
 type Exercise struct {
 	gorm.Model
-	Id int
-	UserId string
+	UID string `gorm:"not null"`
+	User User `gorm:"foreignKey:UID;association_foreignkey:uid'"`
 	Description string
 	Duration int
-	Date string
+	Date time.Time
 }
 
-func AddExercise(uid uuid.UUID, exercise *Exercise) (err error){
-	user := User{}
-	err = Db.First(&user, uid).Error
+func AddExercise(exercise *Exercise) (err error){
+	err = Db.Create(&exercise).Error
 	if err != nil {
+		log.Print(err)
 		return err
 	}
-	err = Db.Create(&exercise).Error
-	user.Log = append(user.Log, *exercise)
 	return
+}
+
+func GetUserExercises(uid string) ([]Exercise) {
+	exercises := []Exercise{}
+	//rows, err := Db.Raw("select uid,description, duration, date FROM exercises where uid = ?", uid).Rows()
+	rows, err := Db.Model(&Exercise{}).Where("uid = ?", uid).Select("uid, description, duration, date").Rows()
+	defer rows.Close()
+	if err != nil {
+		log.Println(err)
+	}
+	for rows.Next() {
+		var ex Exercise
+		Db.ScanRows(rows, &ex)
+		exercises = append(exercises, ex)
+	}
+	return exercises
 }

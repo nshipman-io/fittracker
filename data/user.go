@@ -3,8 +3,9 @@ package data
 import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
-	"log"
+	helper "github.com/nshipman-io/fittracker/helper"
 	"github.com/satori/go.uuid"
+	"log"
 )
 
 var Db *gorm.DB
@@ -15,21 +16,20 @@ func init() {
 		log.Fatal(err)
 	}
 	Db.AutoMigrate(&User{}, &Exercise{})
+	Db.Model(&Exercise{}).AddForeignKey("uid","users(uid)", "ALLOW", "ALLOW")
 }
 
 type User struct {
 	gorm.Model
-	UID	uuid.UUID	`gorm:"unique;not null"`
+	UID	string	`gorm:"unique;not null;primary key"`
 	Username string	`gorm:"unique;not null"`
-	Log	[]Exercise
+	Excercises	[]Exercise
 }
 
 func AddUser(user *User) (err error) {
-	uid := uuid.NewV4()
+	ruid := uuid.NewV4()
+	uid:= helper.RemoveHyphenUIDString(ruid)
 	user.UID = uid
-	if err != nil {
-		return err
-	}
 	err = Db.Create(&user).Error
 	if err != nil {
 		return err
@@ -37,9 +37,12 @@ func AddUser(user *User) (err error) {
 	return
 }
 
-func GetUser(uid uuid.UUID) (*User, error) {
+func GetUser(uid string) (*User, error) {
 	user := User{}
-	err := Db.First(&user, uid).Error
+	err := Db.Raw("SELECT * FROM users WHERE uid = ?",uid).Scan(&user).Error
+	if err != nil {
+		log.Println(err)
+	}
 	return &user, err
 }
 

@@ -4,17 +4,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/nshipman-io/fittracker/data"
-	uuid "github.com/satori/go.uuid"
+	helper "github.com/nshipman-io/fittracker/helper"
 	"html/template"
-	"net/http"
 	"log"
+	"net/http"
+	"strconv"
+	"time"
 )
 
 type UserResp struct {
 	Username string
-	UID	uuid.UUID
+	UID	string
 }
 
+type ExerciseResp struct {
+	UID string
+	Description string
+	Duration int
+	Date time.Time
+}
 func Home(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles("./templates/index.html")
 	if err != nil {
@@ -52,7 +60,6 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Fprintf(w, "Could not retrieve users: %t", err)
 	}
-
 	for _, user := range(users) {
 		ur := UserResp{
 			Username: user.Username,
@@ -61,10 +68,49 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 		uresp = append(uresp, ur)
 	}
 
-	json, err := json.MarshalIndent(&uresp,"","\t\t")
+	json, err := json.Marshal(&uresp)
 	if err != nil {
 		log.Println("Error Marshalling json in GetUsers function")
 	}
 	w.Write(json)
 	return
+}
+
+func AddExercise(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Fprintln(w, "Error parsing form: ", err)
+		return
+	}
+
+	dresp := r.Form.Get("duration")
+	duration, err := strconv.Atoi(dresp)
+	if err != nil {
+		log.Println(err)
+	}
+
+	dtresp := r.Form.Get("date")
+	date, err := helper.ConvertTime(dtresp)
+
+	uid := r.Form.Get("userId")
+	user,err := data.GetUser(uid)
+	if err != nil {
+		log.Println(err)
+	}
+	exercise := data.Exercise{
+		UID: uid,
+		User: *user,
+		Description: r.Form.Get("description"),
+		Duration: duration,
+		Date: date,
+	}
+
+	err = data.AddExercise(&exercise)
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+
 }
