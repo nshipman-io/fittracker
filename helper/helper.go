@@ -9,7 +9,12 @@ import (
 
 var timeLayout = "2006-01-02"
 
-func ConvertTime(dt string) (time.Time, error) {
+func ConvertTimeToString(dt time.Time) (string) {
+	t :=  dt.Format("2006-01-02")
+	return t
+}
+
+func ConvertStringToTime(dt string)(time.Time, error) {
 	t, err := time.Parse(timeLayout, dt)
 	if err != nil {
 		log.Println(err)

@@ -4,7 +4,7 @@
     <list default="true" id="a46cf579-9270-4a2e-8a04-d9ba52d56617" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/exercise.go" beforeDir="false" afterPath="$PROJECT_DIR$/data/exercise.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/data/user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper/helper.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/helper.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/route_main.go" beforeDir="false" afterPath="$PROJECT_DIR$/route_main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server.go" afterDir="false" />
     </list>

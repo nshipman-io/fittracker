@@ -24,18 +24,41 @@ func AddExercise(exercise *Exercise) (err error){
 	return
 }
 
-func GetUserExercises(uid string) ([]Exercise) {
+func GetUserExercises(uid string) ([]Exercise, error) {
 	exercises := []Exercise{}
-	//rows, err := Db.Raw("select uid,description, duration, date FROM exercises where uid = ?", uid).Rows()
 	rows, err := Db.Model(&Exercise{}).Where("uid = ?", uid).Select("uid, description, duration, date").Rows()
 	defer rows.Close()
 	if err != nil {
 		log.Println(err)
+		return exercises, err
 	}
 	for rows.Next() {
 		var ex Exercise
 		Db.ScanRows(rows, &ex)
 		exercises = append(exercises, ex)
 	}
-	return exercises
+	return exercises, err
+}
+
+func GetUserExercisesQuery(uid string, fromdate time.Time, todate time.Time, limit int) ([]Exercise, error) {
+	exercises := []Exercise{}
+	if todate.IsZero() {
+		todate = time.Now()
+	}
+	if limit < 1 {
+		//Arbitrary number that should be queried.
+		limit = 100
+	}
+	rows, err := Db.Model(&Exercise{}).Limit(limit).Where("uid = ? AND date BETWEEN ? AND ?", uid, fromdate, todate).Select("uid, description, duration, date").Rows()
+	defer rows.Close()
+	if err != nil {
+		log.Println(err)
+		return exercises, err
+	}
+	for rows.Next() {
+		var ex Exercise
+		Db.ScanRows(rows, &ex)
+		exercises = append(exercises, ex)
+	}
+	return exercises, err
 }

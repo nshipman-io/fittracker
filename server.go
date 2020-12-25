@@ -14,7 +14,11 @@ func main() {
 	router.HandleFunc("/api/exercise/new-user", NewUser)
 	router.HandleFunc("/api/exercise/users", GetUsers)
 	router.HandleFunc("/api/exercise/add", AddExercise)
-	//router.HandleFunc("/api/exercise/log", Log)
+	router.Path("/api/exercise/log").
+		HandlerFunc(GetExerciseLog).
+		Queries("uid","{uid}","from","{from}", "to", "{to}","limit","{limit}").
+		Name("GetExerciseLog")
+	router.Path("/api/exercise/log").HandlerFunc(GetExerciseLog)
 
 	server := http.Server{
 		Addr: "127.0.0.1:8080",

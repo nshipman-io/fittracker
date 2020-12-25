@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type UserResp struct {
@@ -17,11 +16,14 @@ type UserResp struct {
 	UID	string
 }
 
-type ExerciseResp struct {
+type LogResp struct {
 	UID string
+	Exercises []*ExerciseResp
+}
+type ExerciseResp struct {
 	Description string
 	Duration int
-	Date time.Time
+	Date string
 }
 func Home(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles("./templates/index.html")
@@ -90,7 +92,7 @@ func AddExercise(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dtresp := r.Form.Get("date")
-	date, err := helper.ConvertTime(dtresp)
+	date, err := helper.ConvertStringToTime(dtresp)
 
 	uid := r.Form.Get("userId")
 	user,err := data.GetUser(uid)
@@ -113,4 +115,70 @@ func AddExercise(w http.ResponseWriter, r *http.Request) {
 	}
 
 
+}
+
+func GetExerciseLog(w http.ResponseWriter, r *http.Request) {
+	uid := r.FormValue("uid")
+	fromdate := r.FormValue("from")
+	todate := r.FormValue("to")
+	limstr := r.FormValue("limit")
+	ulog := LogResp{
+		UID: uid,
+	}
+
+	if fromdate == "" && todate == "" && limstr == "" {
+		exercises, err := data.GetUserExercises(uid)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		for _,exercise := range exercises {
+			date := helper.ConvertTimeToString(exercise.Date)
+			exresp := ExerciseResp{
+				Description: exercise.Description,
+				Duration: exercise.Duration,
+				Date: date,
+			}
+			ulog.Exercises = append(ulog.Exercises, &exresp)
+		}
+
+	}else {
+		fdate, err := helper.ConvertStringToTime(fromdate)
+		if err != nil {
+			log.Println(err)
+		}
+		tdate, err := helper.ConvertStringToTime(todate)
+		if err != nil {
+			log.Println(err)
+		}
+		limit, err := strconv.Atoi(limstr)
+		if err != nil {
+			log.Println(err)
+			fmt.Fprintln(w, err)
+			return
+		}
+		exercises, err := data.GetUserExercisesQuery(uid,fdate,tdate,limit)
+		if err != nil {
+			log.Println(err)
+			fmt.Fprintln(w, err)
+			return
+		}
+
+		for _,exercise := range exercises {
+			date := helper.ConvertTimeToString(exercise.Date)
+			exresp := ExerciseResp{
+				Description: exercise.Description,
+				Duration: exercise.Duration,
+				Date: date,
+			}
+			ulog.Exercises = append(ulog.Exercises, &exresp)
+		}
+
+	}
+	json, err := json.MarshalIndent(&ulog,"","\t\t")
+	if err != nil {
+		log.Println("Error Marshalling json in GetExerciseLog function")
+	}
+	w.Write(json)
+	return
 }
